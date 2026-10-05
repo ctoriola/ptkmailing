@@ -43,6 +43,7 @@ export default function PreviewModal({ recipient: r, subject, body, senderName, 
         )}
 
         <div className="overflow-hidden rounded-xl bg-white text-neutral-900 shadow-2xl shadow-black/40">
+          <div className="h-1 bg-gradient-to-r from-[#f68b08] to-[#ef5b00]" />
           <div className="border-b border-neutral-200 px-6 pt-5 pb-4">
             <h3 className="text-lg leading-snug font-semibold text-neutral-900">
               {renderText(subject, vars) || <span className="text-neutral-400">(no subject)</span>}
@@ -54,6 +55,10 @@ export default function PreviewModal({ recipient: r, subject, body, senderName, 
                 <p className="truncate text-neutral-500">to {r.email || "(no email)"}</p>
               </div>
             </div>
+          </div>
+          <div className="px-6 pt-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-dark.png" alt="PrimeTEK SSC" width={130} className="h-auto w-[130px]" />
           </div>
           <div className="min-h-40 px-6 py-5 text-[14px] leading-relaxed whitespace-pre-wrap">
             {renderText(body, vars) || <span className="text-neutral-400">(empty message)</span>}

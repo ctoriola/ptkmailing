@@ -6,7 +6,8 @@ import { sendOrThrow } from "@/lib/resend";
 import { writeSendLog, type SendLogEntry } from "@/lib/sendLog";
 import { getSessionEmail } from "@/lib/session";
 import { getSettings } from "@/lib/settings";
-import { renderHtml, renderText } from "@/lib/template";
+import { appUrl, brandedEmail } from "@/lib/emailLayout";
+import { renderText } from "@/lib/template";
 import type { Recipient, SendResult } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -23,6 +24,7 @@ export const POST = withErrors(async (req: Request) => {
   const data = (await req.json().catch(() => null)) as Body | null;
   if (!data?.recipients?.length) throw new AppError(400, "No recipients to send to.", undefined, "no_recipients");
   const settings = await getSettings();
+  const baseUrl = appUrl(req);
   const results: SendResult[] = [];
   const log: SendLogEntry["items"] = [];
   const blobHost = /\.blob\.vercel-storage\.com$/;
@@ -48,7 +50,7 @@ export const POST = withErrors(async (req: Request) => {
         to: r.email,
         replyTo: settings.replyTo || sender,
         subject,
-        html: renderHtml(bodyTpl, vars),
+        html: brandedEmail({ text: renderText(bodyTpl, vars), baseUrl, preheader: subject }),
         text: renderText(bodyTpl, vars),
         attachments,
       }, settings.senderName);

@@ -16,12 +16,6 @@ export function renderText(tpl: string, vars: Vars) {
   return tpl.replace(PLACEHOLDER, (m, k) => (k in vars ? vars[k] : m));
 }
 
-/** Render a plain-text body to HTML, escaping both the template and the values. */
-export function renderHtml(tpl: string, vars: Vars) {
-  const filled = renderText(tpl, vars);
-  return `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;white-space:pre-wrap">${escapeHtml(filled)}</div>`;
-}
-
 export function missingVars(tpl: string, vars: Vars) {
   const missing = new Set<string>();
   for (const [, k] of tpl.matchAll(PLACEHOLDER)) if (!(k in vars) || !vars[k]) missing.add(k);
