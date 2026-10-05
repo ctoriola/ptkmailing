@@ -56,10 +56,6 @@ export default function PreviewModal({ recipient: r, subject, body, senderName, 
               </div>
             </div>
           </div>
-          <div className="px-6 pt-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-dark.png" alt="PrimeTEK SSC" width={130} className="h-auto w-[130px]" />
-          </div>
           <div className="min-h-40 px-6 py-5 text-[14px] leading-relaxed whitespace-pre-wrap">
             {renderText(body, vars) || <span className="text-neutral-400">(empty message)</span>}
           </div>
@@ -82,6 +78,14 @@ export default function PreviewModal({ recipient: r, subject, body, senderName, 
               </div>
             </div>
           )}
+          <div className="flex items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
+            <div className="text-xs leading-relaxed text-neutral-500">
+              <p className="font-semibold text-neutral-700">PrimeTEK Safety &amp; Security Consultants</p>
+              <p className="text-[#ef5b00]">primetekssc.ng</p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-dark.png" alt="PrimeTEK SSC" width={110} className="h-auto w-[110px]" />
+          </div>
         </div>
       </div>
     </Modal>

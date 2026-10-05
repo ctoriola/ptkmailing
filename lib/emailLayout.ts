@@ -6,7 +6,7 @@ export function appUrl(req: Request) {
 }
 
 /**
- * Wrap a plain-text message in PrimeTEK SSC's branded email layout (logo header, footer).
+ * Wrap a plain-text message in PrimeTEK SSC's branded email layout (accent bar, footer with logo).
  * Table-based with inline styles so it renders consistently in Gmail, Outlook and Apple Mail.
  */
 export function brandedEmail({ text, baseUrl, preheader = "" }: { text: string; baseUrl: string; preheader?: string }) {
@@ -29,21 +29,25 @@ export function brandedEmail({ text, baseUrl, preheader = "" }: { text: string; 
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;">
         <tr><td style="height:4px;background:#ef5b00;background-image:linear-gradient(90deg,#f68b08,#ef5b00);font-size:0;line-height:0;">&nbsp;</td></tr>
         <tr>
-          <td style="padding:28px 40px 20px 40px;border-bottom:1px solid #f0f0f1;">
-            <a href="https://primetekssc.ng" style="text-decoration:none;">
-              <img src="${logo}" width="150" alt="PrimeTEK Safety &amp; Security Consultants" style="display:block;width:150px;max-width:150px;height:auto;border:0;outline:none;">
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:32px 40px 36px 40px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.65;color:#27272a;">
+          <td style="padding:36px 40px 36px 40px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.65;color:#27272a;">
             ${body}
           </td>
         </tr>
         <tr>
-          <td style="padding:20px 40px;background:#fafafa;border-top:1px solid #f0f0f1;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#71717a;">
-            <strong style="color:#3f3f46;">PrimeTEK Safety &amp; Security Consultants</strong><br>
-            <a href="https://primetekssc.ng" style="color:#ef5b00;text-decoration:none;">primetekssc.ng</a>
+          <td style="padding:24px 40px;background:#fafafa;border-top:1px solid #f0f0f1;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#71717a;">
+                  <strong style="color:#3f3f46;">PrimeTEK Safety &amp; Security Consultants</strong><br>
+                  <a href="https://primetekssc.ng" style="color:#ef5b00;text-decoration:none;">primetekssc.ng</a>
+                </td>
+                <td valign="middle" align="right" style="width:130px;">
+                  <a href="https://primetekssc.ng" style="text-decoration:none;">
+                    <img src="${logo}" width="120" alt="PrimeTEK SSC" style="display:block;width:120px;max-width:120px;height:auto;border:0;outline:none;">
+                  </a>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
