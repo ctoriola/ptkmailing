@@ -1,16 +1,19 @@
 "use client";
 
-import { uploadPresigned } from "@vercel/blob/client";
-import { useState } from "react";
-import { fetchJson, toErrorBody } from "@/lib/fetchJson";
+import { AlertCircle, CheckCircle2, Eye, PenLine, Trash2, XCircle } from "lucide-react";
 import type { Attachment, Recipient } from "@/lib/types";
+import FileDropzone from "./FileDropzone";
 import TemplateEditor from "./TemplateEditor";
+import { Button } from "./ui/Button";
+import { cn } from "./ui/cn";
 
 type Props = {
   index: number;
   recipient: Recipient;
   fields: string[];
   defaults: { subject: string; body: string };
+  issues: string[];
+  showIssues: boolean;
   onChange: (r: Recipient) => void;
   onAddAttachments: (a: Attachment[]) => void;
   onRemove: () => void;
@@ -18,143 +21,99 @@ type Props = {
   status?: { ok: boolean; error?: string };
 };
 
-// Must match the Blob store's access setting in Vercel (new stores default to private).
-let blobAccess: "public" | "private" = process.env.NEXT_PUBLIC_BLOB_ACCESS === "public" ? "public" : "private";
-
-async function uploadFile(file: File) {
-  const send = () => uploadPresigned(`attachments/${file.name}`, file, { access: blobAccess, handleUploadUrl: "/api/upload" });
-  try {
-    return await send();
-  } catch (e) {
-    // If the store uses the other access mode, switch once and retry.
-    if (!/access|private|public/i.test((e as Error)?.message || "")) throw e;
-    blobAccess = blobAccess === "private" ? "public" : "private";
-    return send();
-  }
-}
-
-/** @vercel/blob hides the server's error message; ask /api/upload directly to find out why. */
-async function explainUploadError(e: unknown, pathname: string) {
-  const msg = (e as Error)?.message || "";
-  if (!/client token|presigned/i.test(msg)) return msg || "Upload failed.";
-  try {
-    await fetchJson("/api/upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "blob.generate-presigned-url", payload: { pathname, clientPayload: null, multipart: false } }),
-    });
-    return msg;
-  } catch (err) {
-    const b = toErrorBody(err);
-    return [b.error, b.hint].filter(Boolean).join(" ");
-  }
-}
-
-function formatSize(n: number) {
-  return n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`;
-}
-
-export default function RecipientRow({ index, recipient: r, fields, defaults, onChange, onAddAttachments, onRemove, onPreview, status }: Props) {
-  const [uploading, setUploading] = useState(0);
-  const [uploadError, setUploadError] = useState("");
-
-  async function addFiles(files: FileList | null) {
-    if (!files?.length) return;
-    setUploadError("");
-    setUploading((n) => n + files.length);
-    const added: Attachment[] = [];
-    for (const file of Array.from(files)) {
-      try {
-        const blob = await uploadFile(file);
-        added.push({ url: blob.url, pathname: blob.pathname, filename: file.name, size: file.size });
-      } catch (e) {
-        setUploadError(`${file.name}: ${await explainUploadError(e, `attachments/${file.name}`)}`);
-      } finally {
-        setUploading((n) => n - 1);
-      }
-    }
-    if (added.length) onAddAttachments(added);
-  }
+export default function RecipientRow({ index, recipient: r, fields, defaults, issues, showIssues, onChange, onAddAttachments, onRemove, onPreview, status }: Props) {
+  const flagged = showIssues && issues.length > 0 && !status;
 
   return (
-    <div className={`card space-y-3 ${status ? (status.ok ? "border-green-700" : "border-red-700") : ""}`}>
-      <div className="flex items-center justify-between">
-        <span className="font-[family-name:var(--font-display)] text-sm font-bold text-brand-2">#{String(index + 1).padStart(2, "0")}</span>
-        <div className="flex gap-2">
-          <button type="button" className="btn-ghost" onClick={onPreview}>Preview</button>
-          <button type="button" className="btn-ghost text-red-400" onClick={onRemove}>Remove</button>
+    <div
+      className={cn(
+        "card overflow-hidden animate-slide-up",
+        status?.ok && "border-emerald-500/30",
+        status && !status.ok && "border-red-500/40",
+        flagged && "border-amber-500/40",
+      )}
+    >
+      <div className="flex items-center gap-3 border-b border-line bg-panel-2/40 px-4 py-2.5">
+        <span className="grid size-6 place-items-center rounded-md bg-panel-3 font-mono text-[11px] font-medium text-muted">{index + 1}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">
+          {r.vars.name || r.email || <span className="text-subtle">New recipient</span>}
+        </span>
+        {status ? (
+          status.ok ? (
+            <span className="flex items-center gap-1 text-xs font-medium text-emerald-400"><CheckCircle2 className="size-3.5" /> Sent</span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs font-medium text-red-400"><XCircle className="size-3.5" /> Failed</span>
+          )
+        ) : (
+          r.useCustom && <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand-2 ring-1 ring-brand/20">Custom message</span>
+        )}
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            iconOnly
+            icon={PenLine}
+            aria-label="Write a custom message"
+            title="Write a custom message"
+            className={r.useCustom ? "text-brand-2" : ""}
+            onClick={() => onChange({ ...r, useCustom: !r.useCustom, subject: r.subject || defaults.subject, body: r.body || defaults.body })}
+          />
+          <Button variant="ghost" size="sm" iconOnly icon={Eye} aria-label="Preview" title="Preview" onClick={onPreview} />
+          <Button variant="danger" size="sm" iconOnly icon={Trash2} aria-label="Remove recipient" title="Remove" onClick={onRemove} />
         </div>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        <input
-          className="input"
-          type="email"
-          placeholder="customer@example.com"
-          value={r.email}
-          onChange={(e) => onChange({ ...r, email: e.target.value.trim() })}
-        />
-        {fields.map((f) => (
-          <input
-            key={f}
-            className="input"
-            placeholder={f}
-            value={r.vars[f] ?? ""}
-            onChange={(e) => onChange({ ...r, vars: { ...r.vars, [f]: e.target.value } })}
-          />
-        ))}
-      </div>
+      <div className="space-y-4 p-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="space-y-1.5">
+            <span className="text-xs font-medium text-muted">Email address</span>
+            <input
+              className={cn("input h-9", flagged && issues.some((i) => i.includes("email")) && "border-amber-500/60")}
+              type="email"
+              placeholder="customer@example.com"
+              value={r.email}
+              onChange={(e) => onChange({ ...r, email: e.target.value.trim() })}
+            />
+          </label>
+          {fields.map((f) => (
+            <label key={f} className="space-y-1.5">
+              <span className="text-xs font-medium text-muted capitalize">{f}</span>
+              <input
+                className="input h-9"
+                placeholder={f === "name" ? "Full name" : f}
+                value={r.vars[f] ?? ""}
+                onChange={(e) => onChange({ ...r, vars: { ...r.vars, [f]: e.target.value } })}
+              />
+            </label>
+          ))}
+        </div>
 
-      <div>
-        <label className="btn-ghost cursor-pointer">
-          Attach files
-          <input type="file" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
-        </label>
-        {uploading > 0 && <span className="ml-3 text-sm text-muted">Uploading {uploading}…</span>}
-        {uploadError && <p className="mt-1 text-sm text-red-400">{uploadError}</p>}
-        {r.attachments.length > 0 && (
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {r.attachments.map((a) => (
-              <li key={a.url} className="flex items-center gap-2 rounded bg-panel-2 px-2 py-1 text-xs">
-                {a.filename} <span className="text-muted">{formatSize(a.size)}</span>
-                <button
-                  type="button"
-                  aria-label={`Remove ${a.filename}`}
-                  className="text-muted hover:text-red-400"
-                  onClick={() => onChange({ ...r, attachments: r.attachments.filter((x) => x.url !== a.url) })}
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
+        <FileDropzone
+          attachments={r.attachments}
+          onAdd={onAddAttachments}
+          onRemove={(url) => onChange({ ...r, attachments: r.attachments.filter((x) => x.url !== url) })}
+        />
+
+        {r.useCustom && (
+          <div className="rounded-lg border border-brand/20 bg-brand/[0.03] p-4">
+            <p className="mb-3 text-xs font-medium text-brand-2">Custom message for this recipient</p>
+            <TemplateEditor compact subject={r.subject} body={r.body} fields={fields} onChange={(t) => onChange({ ...r, ...t })} />
+          </div>
+        )}
+
+        {flagged && (
+          <div className="flex items-start gap-2 rounded-lg bg-amber-500/[0.07] px-3 py-2 text-xs text-amber-300">
+            <AlertCircle className="mt-px size-3.5 shrink-0" />
+            <span>{issues.join(" · ")}</span>
+          </div>
+        )}
+        {status && !status.ok && (
+          <div className="flex items-start gap-2 rounded-lg bg-red-500/[0.07] px-3 py-2 text-xs text-red-300">
+            <XCircle className="mt-px size-3.5 shrink-0" />
+            <span>{status.error}</span>
+          </div>
         )}
       </div>
-
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={r.useCustom}
-          onChange={(e) =>
-            onChange({
-              ...r,
-              useCustom: e.target.checked,
-              subject: r.subject || defaults.subject,
-              body: r.body || defaults.body,
-            })
-          }
-        />
-        Write a custom email for this recipient
-      </label>
-      {r.useCustom && (
-        <TemplateEditor compact subject={r.subject} body={r.body} fields={fields} onChange={(t) => onChange({ ...r, ...t })} />
-      )}
-
-      {status && (
-        <p className={`text-sm ${status.ok ? "text-green-400" : "text-red-400"}`}>
-          {status.ok ? "Sent ✓" : `Failed: ${status.error}`}
-        </p>
-      )}
     </div>
   );
 }

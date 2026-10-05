@@ -2,29 +2,53 @@
 
 /* PrimeTEK SSC brand (from primetekssc.ng) */
 @theme {
-  --color-ink: #0e0e0e;
-  --color-panel: #161414;
-  --color-panel-2: #1f1c1c;
-  --color-line: #2f302c;
-  --color-fg: #fbfbfb;
-  --color-muted: #a3a1a1;
+  --color-ink: #0b0b0c;
+  --color-panel: #131314;
+  --color-panel-2: #1b1b1d;
+  --color-panel-3: #232326;
+  --color-line: #262629;
+  --color-line-strong: #34343a;
+  --color-fg: #f5f5f4;
+  --color-muted: #9a9aa1;
+  --color-subtle: #6b6b73;
   --color-brand: #ef5b00;
   --color-brand-2: #f68b08;
   --font-sans: var(--font-onest), system-ui, sans-serif;
   --font-display: var(--font-inter-tight), system-ui, sans-serif;
+  --animate-fade-in: fade-in 0.18s ease-out;
+  --animate-pop-in: pop-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-slide-up: slide-up 0.25s ease-out;
 }
 
-body {
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+html {
   background: var(--color-ink);
+}
+body {
   color: var(--color-fg);
   color-scheme: dark;
+  font-size: 14px;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgb(239 91 0 / 0.07), transparent 60%),
+    var(--color-ink);
+  background-attachment: fixed;
 }
 
-h1,
-h2,
-h3 {
+h1, h2, h3, h4 {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 ::selection {
@@ -32,23 +56,31 @@ h3 {
   color: white;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-brand-2);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Thin, unobtrusive scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+
 @utility input {
-  @apply w-full rounded-lg border border-line bg-ink px-3.5 py-2.5 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/25;
-}
-@utility btn {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold uppercase tracking-wide transition duration-300 disabled:cursor-not-allowed disabled:opacity-50;
-  font-family: var(--font-display);
-}
-@utility btn-primary {
-  @apply btn bg-brand text-white hover:bg-brand-2;
-}
-@utility btn-ghost {
-  @apply btn border border-line bg-transparent text-fg hover:border-brand hover:text-brand-2;
+  @apply w-full rounded-lg border border-line bg-ink/60 px-3 py-2 text-sm text-fg shadow-inner shadow-black/20 outline-none transition placeholder:text-subtle hover:border-line-strong focus:border-brand/70 focus:ring-4 focus:ring-brand/15;
 }
 @utility card {
-  @apply rounded-2xl border border-line bg-panel p-5;
+  @apply rounded-xl border border-line bg-panel shadow-[0_1px_0_0_rgb(255_255_255/0.04)_inset,0_8px_24px_-12px_rgb(0_0_0/0.6)];
 }
 @utility eyebrow {
-  @apply text-xs font-semibold uppercase tracking-[0.2em] text-brand-2;
+  @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-2;
   font-family: var(--font-display);
+}
+@utility kbd {
+  @apply rounded border border-line-strong bg-panel-2 px-1.5 py-0.5 font-mono text-[11px] text-muted;
 }
