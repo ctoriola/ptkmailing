@@ -1,13 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
+import { requireEnv } from "./config";
 
 export const SESSION_COOKIE = "ptk_session";
 const SESSION_TTL = 60 * 60 * 12; // 12 hours
 const LINK_TTL = 60 * 15; // 15 minutes
 
 function secret() {
-  const s = process.env.AUTH_SECRET;
-  if (!s) throw new Error("AUTH_SECRET is not set");
-  return new TextEncoder().encode(s);
+  return new TextEncoder().encode(requireEnv("AUTH_SECRET"));
 }
 
 export function allowedDomain() {

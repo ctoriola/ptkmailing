@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ErrorBody } from "@/lib/errors";
+import { fetchJson, toErrorBody } from "@/lib/fetchJson";
 import { missingVars, parseCsv } from "@/lib/template";
+import ErrorMessage from "./ErrorMessage";
 import type { Attachment, Recipient, SendResult } from "@/lib/types";
 import PreviewModal from "./PreviewModal";
 import RecipientRow from "./RecipientRow";
@@ -26,7 +29,7 @@ export default function Dashboard() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [results, setResults] = useState<Record<string, SendResult>>({});
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ErrorBody | null>(null);
 
   // Restore the unsent draft on load, and save it as it changes.
   useEffect(() => {
@@ -89,20 +92,18 @@ export default function Dashboard() {
     if (problems.length) return;
     if (!confirm(`Send ${recipients.length} email(s)?`)) return;
     setSending(true);
-    setError("");
+    setError(null);
     try {
-      const res = await fetch("/api/send", {
+      const json = await fetchJson<{ results: SendResult[] }>("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipients, ...template }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Send failed");
       const byEmail: Record<string, SendResult> = {};
       recipients.forEach((r, i) => (byEmail[r.id] = json.results[i]));
       setResults(byEmail);
     } catch (e) {
-      setError((e as Error).message);
+      setError(toErrorBody(e));
     } finally {
       setSending(false);
     }
@@ -184,7 +185,7 @@ export default function Dashboard() {
             {problems.map((p) => <li key={p}>{p}</li>)}
           </ul>
         )}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <ErrorMessage error={error} />
         <div className="flex flex-wrap items-center gap-3">
           <button className="btn-primary" disabled={sending || problems.length > 0} onClick={send}>
             {sending ? "Sending…" : `Send ${recipients.length} email${recipients.length === 1 ? "" : "s"}`}

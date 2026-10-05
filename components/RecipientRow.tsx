@@ -2,6 +2,7 @@
 
 import { upload } from "@vercel/blob/client";
 import { useState } from "react";
+import { fetchJson, toErrorBody } from "@/lib/fetchJson";
 import type { Attachment, Recipient } from "@/lib/types";
 import TemplateEditor from "./TemplateEditor";
 
@@ -16,6 +17,23 @@ type Props = {
   onPreview: () => void;
   status?: { ok: boolean; error?: string };
 };
+
+/** @vercel/blob hides the server's error message; ask /api/upload directly to find out why. */
+async function explainUploadError(e: unknown, pathname: string) {
+  const msg = (e as Error)?.message || "";
+  if (!/client token/i.test(msg)) return msg || "Upload failed.";
+  try {
+    await fetchJson("/api/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "blob.generate-client-token", payload: { pathname, clientPayload: null, multipart: false } }),
+    });
+    return msg;
+  } catch (err) {
+    const b = toErrorBody(err);
+    return [b.error, b.hint].filter(Boolean).join(" ");
+  }
+}
 
 function formatSize(n: number) {
   return n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`;
@@ -35,7 +53,7 @@ export default function RecipientRow({ index, recipient: r, fields, defaults, on
         const blob = await upload(`attachments/${file.name}`, file, { access: "public", handleUploadUrl: "/api/upload" });
         added.push({ url: blob.url, pathname: blob.pathname, filename: file.name, size: file.size });
       } catch (e) {
-        setUploadError(`${file.name}: ${(e as Error).message}`);
+        setUploadError(`${file.name}: ${await explainUploadError(e, `attachments/${file.name}`)}`);
       } finally {
         setUploading((n) => n - 1);
       }

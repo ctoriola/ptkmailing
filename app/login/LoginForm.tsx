@@ -1,24 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import ErrorMessage from "@/components/ErrorMessage";
+import type { ErrorBody } from "@/lib/errors";
+import { fetchJson, toErrorBody } from "@/lib/fetchJson";
 
-export default function LoginForm({ expired }: { expired: boolean }) {
+export default function LoginForm({ initialError }: { initialError: ErrorBody | null }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
-  const [error, setError] = useState(expired ? "That sign-in link has expired. Request a new one." : "");
+  const [error, setError] = useState<ErrorBody | null>(initialError);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("sending");
-    setError("");
-    const res = await fetch("/api/auth/request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (res.ok) return setStatus("sent");
-    setError((await res.json().catch(() => ({}))).error || "Something went wrong.");
-    setStatus("idle");
+    setError(null);
+    try {
+      await fetchJson("/api/auth/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      setStatus("sent");
+    } catch (e) {
+      setError(toErrorBody(e));
+      setStatus("idle");
+    }
   }
 
   return (
@@ -41,7 +47,7 @@ export default function LoginForm({ expired }: { expired: boolean }) {
             <button className="btn-primary w-full" disabled={status === "sending"}>
               {status === "sending" ? "Sending…" : "Email me a sign-in link"}
             </button>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            <ErrorMessage error={error} />
           </form>
         )}
       </div>

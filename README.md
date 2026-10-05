@@ -31,3 +31,7 @@ npm run dev
 - Each file can be up to 25 MB, and Resend allows about 40 MB per email in total.
 - Sends are paced at about 2 per second to stay under Resend's default rate limit, and a send request can run for up to 60 seconds. Keep each batch to about 100 recipients (or raise `maxDuration` in `app/api/send/route.ts` on a paid Vercel plan).
 - After an email is sent, its attachment files are deleted from Blob storage.
+
+## Troubleshooting
+- Errors appear in the app with a hint and a short **Reference** code. Search for that code in Vercel → Project → **Logs** to find the full server error.
+- Open `/api/auth/health` to see which required environment variables are set. It shows only true/false, never the values. After changing env vars in Vercel, redeploy.
