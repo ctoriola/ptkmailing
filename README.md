@@ -22,7 +22,7 @@ npm run dev
 
 ## Deploying to Vercel with mailing.primetekssc.ng
 1. Import this repo into Vercel.
-2. **Storage → Create → Blob**, then connect it to the project. This sets `BLOB_READ_WRITE_TOKEN`.
+2. **Storage → Create → Blob**, then connect it to the project. This adds `BLOB_STORE_ID` and `BLOB_WEBHOOK_PUBLIC_KEY` (older stores add `BLOB_READ_WRITE_TOKEN` instead; both work). Uploads default to a private store; if yours is public, set `NEXT_PUBLIC_BLOB_ACCESS=public`.
 3. Set the env vars from `.env.example` (`RESEND_API_KEY`, `MAIL_FROM`, `AUTH_SECRET`, `ALLOWED_EMAIL_DOMAIN`).
 4. **Settings → Domains → Add** `mailing.primetekssc.ng`. At your DNS provider, add a CNAME: `mailing` → `cname.vercel-dns.com`.
 5. In Resend, add the domain `primetekssc.ng` and create the SPF/DKIM DNS records it lists. A DMARC record is recommended too. Without these, mail will land in spam.

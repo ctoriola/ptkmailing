@@ -1,4 +1,4 @@
-import { del } from "@vercel/blob";
+import { del, get } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { requireEnv } from "@/lib/config";
 import { AppError, withErrors } from "@/lib/errors";
@@ -21,7 +21,7 @@ export const POST = withErrors(async (req: Request) => {
   const data = (await req.json().catch(() => null)) as Body | null;
   if (!data?.recipients?.length) throw new AppError(400, "No recipients to send to.", undefined, "no_recipients");
   const results: SendResult[] = [];
-  const blobHost = /\.public\.blob\.vercel-storage\.com$/;
+  const blobHost = /\.blob\.vercel-storage\.com$/;
 
   for (const r of data.recipients) {
     const vars = { ...r.vars, email: r.email };
@@ -30,10 +30,12 @@ export const POST = withErrors(async (req: Request) => {
     try {
       const attachments = await Promise.all(
         r.attachments.map(async (a) => {
-          if (!blobHost.test(new URL(a.url).hostname)) throw new Error(`Invalid attachment URL for ${a.filename}`);
-          const res = await fetch(a.url);
-          if (!res.ok) throw new Error(`Could not load ${a.filename}`);
-          return { filename: a.filename, content: Buffer.from(await res.arrayBuffer()) };
+          const host = new URL(a.url).hostname;
+          if (!blobHost.test(host)) throw new AppError(400, `Invalid attachment URL for ${a.filename}.`);
+          const access = host.includes(".private.") ? "private" : "public";
+          const blob = await get(a.url, { access }).catch(() => null);
+          if (!blob?.stream) throw new AppError(502, `Could not load attachment ${a.filename}.`, "Try removing and re-attaching the file.");
+          return { filename: a.filename, content: Buffer.from(await new Response(blob.stream).arrayBuffer()) };
         }),
       );
       const sent = await sendOrThrow({

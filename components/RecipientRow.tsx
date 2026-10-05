@@ -1,6 +1,6 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
+import { uploadPresigned } from "@vercel/blob/client";
 import { useState } from "react";
 import { fetchJson, toErrorBody } from "@/lib/fetchJson";
 import type { Attachment, Recipient } from "@/lib/types";
@@ -18,15 +18,30 @@ type Props = {
   status?: { ok: boolean; error?: string };
 };
 
+// Must match the Blob store's access setting in Vercel (new stores default to private).
+let blobAccess: "public" | "private" = process.env.NEXT_PUBLIC_BLOB_ACCESS === "public" ? "public" : "private";
+
+async function uploadFile(file: File) {
+  const send = () => uploadPresigned(`attachments/${file.name}`, file, { access: blobAccess, handleUploadUrl: "/api/upload" });
+  try {
+    return await send();
+  } catch (e) {
+    // If the store uses the other access mode, switch once and retry.
+    if (!/access|private|public/i.test((e as Error)?.message || "")) throw e;
+    blobAccess = blobAccess === "private" ? "public" : "private";
+    return send();
+  }
+}
+
 /** @vercel/blob hides the server's error message; ask /api/upload directly to find out why. */
 async function explainUploadError(e: unknown, pathname: string) {
   const msg = (e as Error)?.message || "";
-  if (!/client token/i.test(msg)) return msg || "Upload failed.";
+  if (!/client token|presigned/i.test(msg)) return msg || "Upload failed.";
   try {
     await fetchJson("/api/upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "blob.generate-client-token", payload: { pathname, clientPayload: null, multipart: false } }),
+      body: JSON.stringify({ type: "blob.generate-presigned-url", payload: { pathname, clientPayload: null, multipart: false } }),
     });
     return msg;
   } catch (err) {
@@ -50,7 +65,7 @@ export default function RecipientRow({ index, recipient: r, fields, defaults, on
     const added: Attachment[] = [];
     for (const file of Array.from(files)) {
       try {
-        const blob = await upload(`attachments/${file.name}`, file, { access: "public", handleUploadUrl: "/api/upload" });
+        const blob = await uploadFile(file);
         added.push({ url: blob.url, pathname: blob.pathname, filename: file.name, size: file.size });
       } catch (e) {
         setUploadError(`${file.name}: ${await explainUploadError(e, `attachments/${file.name}`)}`);
