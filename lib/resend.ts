@@ -1,6 +1,7 @@
 import { Resend, type CreateEmailOptions } from "resend";
 import { requireEnv } from "./config";
 import { AppError } from "./errors";
+import { DEFAULT_SETTINGS, formatFrom } from "./settings";
 
 export function resend() {
   return new Resend(requireEnv("RESEND_API_KEY"));
@@ -22,8 +23,9 @@ const HINTS: Record<string, string> = {
 };
 
 /** Send through Resend, turning its error responses into AppErrors with actionable hints. */
-export async function sendOrThrow(email: Omit<CreateEmailOptions, "from">) {
-  const { data, error } = await resend().emails.send({ ...email, from: mailFrom() } as CreateEmailOptions);
+export async function sendOrThrow(email: Omit<CreateEmailOptions, "from">, senderName = DEFAULT_SETTINGS.senderName) {
+  const from = formatFrom(mailFrom(), senderName);
+  const { data, error } = await resend().emails.send({ ...email, from } as CreateEmailOptions);
   if (error) {
     const name = (error as { name?: string }).name ?? "resend_error";
     let hint = HINTS[name];

@@ -30,20 +30,28 @@ export default function Dashboard() {
   const [sending, setSending] = useState(false);
   const [results, setResults] = useState<Record<string, SendResult>>({});
   const [error, setError] = useState<ErrorBody | null>(null);
+  const [sendAs, setSendAs] = useState<{ senderName: string; signature: string } | null>(null);
 
-  // Restore the unsent draft on load, and save it as it changes.
+  // Restore the unsent draft on load (or start from the admin's default template), and save it as it changes.
   useEffect(() => {
-    try {
-      const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null") as Draft | null;
+    (async () => {
+      type Shared = { senderName: string; defaultSubject: string; defaultBody: string; signature: string };
+      const shared = await fetchJson<Shared>("/api/settings").catch(() => null);
+      if (shared) setSendAs({ senderName: shared.senderName, signature: shared.signature });
+      let d: Draft | null = null;
+      try {
+        d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+      } catch {}
       if (d) {
         setFields(d.fields);
         setTemplate({ subject: d.subject, body: d.body });
         setRecipients(d.recipients);
-      } else setRecipients([newRecipient()]);
-    } catch {
-      setRecipients([newRecipient()]);
-    }
-    setLoaded(true);
+      } else {
+        setTemplate({ subject: shared?.defaultSubject ?? "", body: shared?.defaultBody ?? "" });
+        setRecipients([newRecipient()]);
+      }
+      setLoaded(true);
+    })();
   }, []);
   useEffect(() => {
     if (!loaded) return;
@@ -130,6 +138,11 @@ export default function Dashboard() {
           Used for every recipient unless you write a custom email for them. Placeholders are filled from each recipient&apos;s fields.
         </p>
         <TemplateEditor {...template} fields={fields} onChange={setTemplate} />
+        {sendAs && (
+          <p className="text-xs text-slate-500">
+            Sent as <b>{sendAs.senderName}</b>.{sendAs.signature && " The company signature is added automatically at the end."}
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-slate-600">Fields:</span>
           {fields.map((f) => (
@@ -203,7 +216,8 @@ export default function Dashboard() {
         <PreviewModal
           recipient={preview}
           subject={preview.useCustom ? preview.subject : template.subject}
-          body={preview.useCustom ? preview.body : template.body}
+          body={(preview.useCustom ? preview.body : template.body) + (sendAs?.signature ? `\n\n${sendAs.signature}` : "")}
+          senderName={sendAs?.senderName}
           onClose={() => setPreviewId(null)}
         />
       )}

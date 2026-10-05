@@ -3,9 +3,9 @@
 import { missingVars, renderText } from "@/lib/template";
 import type { Recipient } from "@/lib/types";
 
-type Props = { recipient: Recipient; subject: string; body: string; onClose: () => void };
+type Props = { recipient: Recipient; subject: string; body: string; senderName?: string; onClose: () => void };
 
-export default function PreviewModal({ recipient: r, subject, body, onClose }: Props) {
+export default function PreviewModal({ recipient: r, subject, body, senderName, onClose }: Props) {
   const vars = { ...r.vars, email: r.email };
   const missing = missingVars(subject + body, vars);
   return (
@@ -13,6 +13,7 @@ export default function PreviewModal({ recipient: r, subject, body, onClose }: P
       <div className="card max-h-[90vh] w-full max-w-2xl overflow-auto" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-start justify-between gap-4">
           <div className="text-sm">
+            {senderName && <div><span className="text-slate-500">From:</span> {senderName}</div>}
             <div><span className="text-slate-500">To:</span> {r.email || <i>no email</i>}</div>
             <div className="font-semibold"><span className="font-normal text-slate-500">Subject:</span> {renderText(subject, vars)}</div>
           </div>

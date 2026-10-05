@@ -25,8 +25,10 @@ export async function createLoginToken(email: string) {
     .sign(secret());
 }
 
-export async function createSessionToken(email: string) {
-  return new SignJWT({ email, purpose: "session" })
+export type Role = "staff" | "admin";
+
+export async function createSessionToken(email: string, role: Role = "staff") {
+  return new SignJWT({ email, role, purpose: "session" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_TTL}s`)
@@ -34,14 +36,22 @@ export async function createSessionToken(email: string) {
 }
 
 export async function verifyToken(token: string, purpose: "login" | "session") {
+  return (await verifySession(token, purpose))?.email ?? null;
+}
+
+export async function verifySession(token: string, purpose: "login" | "session" = "session") {
   try {
     const { payload } = await jwtVerify(token, secret());
     if (payload.purpose !== purpose || typeof payload.email !== "string") return null;
     if (!isAllowedEmail(payload.email)) return null;
-    return payload.email;
+    return { email: payload.email, role: (payload.role === "admin" ? "admin" : "staff") as Role };
   } catch {
     return null;
   }
+}
+
+export function adminEmail() {
+  return (process.env.ADMIN_EMAIL || "admin@" + allowedDomain()).toLowerCase();
 }
 
 export const sessionCookieOptions = {

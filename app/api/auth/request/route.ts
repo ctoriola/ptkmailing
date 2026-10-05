@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { allowedDomain, createLoginToken, isAllowedEmail } from "@/lib/auth";
 import { AppError, withErrors } from "@/lib/errors";
 import { sendOrThrow } from "@/lib/resend";
+import { getSettings } from "@/lib/settings";
 
 export const POST = withErrors(async (req: Request) => {
   const { email } = (await req.json().catch(() => ({}))) as { email?: string };
@@ -18,6 +19,6 @@ export const POST = withErrors(async (req: Request) => {
     to: addr,
     subject: "Your PTK Mailing sign-in link",
     html: `<p>Click to sign in to PTK Mailing (valid for 15 minutes):</p><p><a href="${link}">Sign in</a></p><p>If you didn't request this, ignore this email.</p>`,
-  });
+  }, (await getSettings()).senderName);
   return NextResponse.json({ ok: true });
 });

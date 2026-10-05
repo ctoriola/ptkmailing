@@ -13,6 +13,14 @@ Built with Next.js, deployed on Vercel. Uses [Resend](https://resend.com) for se
 - Results for each recipient after sending; failed ones stay in the list so you can retry
 - The unsent draft is saved in the browser
 
+## Admin page
+Go to `/admin/login` and sign in with `ADMIN_EMAIL` (default `admin@primetekssc.ng`) and `ADMIN_PASSWORD`. Both are set in Vercel's environment variables; the password is never stored in the code. The admin page has:
+- **Send history**: every batch sent, showing who sent it and each recipient, subject, attachments and result.
+- **Settings**: sender name (default "PrimeTEK SSC"), reply-to address, default subject and message, and a signature added to every email.
+- **System status**: which settings are configured, and whether the sending domain is verified in Resend.
+
+History and settings are saved as JSON files in the project's Vercel Blob store, under `admin/`. No extra database is needed.
+
 ## Local development
 ```bash
 cp .env.example .env.local   # fill in the values
@@ -23,7 +31,7 @@ npm run dev
 ## Deploying to Vercel with mailing.primetekssc.ng
 1. Import this repo into Vercel.
 2. **Storage → Create → Blob**, then connect it to the project. This adds `BLOB_STORE_ID` and `BLOB_WEBHOOK_PUBLIC_KEY` (older stores add `BLOB_READ_WRITE_TOKEN` instead; both work). Uploads default to a private store; if yours is public, set `NEXT_PUBLIC_BLOB_ACCESS=public`.
-3. Set the env vars from `.env.example` (`RESEND_API_KEY`, `MAIL_FROM`, `AUTH_SECRET`, `ALLOWED_EMAIL_DOMAIN`).
+3. Set the env vars from `.env.example` (`RESEND_API_KEY`, `MAIL_FROM`, `AUTH_SECRET`, `ADMIN_PASSWORD`, and optionally `ALLOWED_EMAIL_DOMAIN` and `ADMIN_EMAIL`). The sender name comes from the admin settings, so `MAIL_FROM` can be just the address.
 4. **Settings → Domains → Add** `mailing.primetekssc.ng`. At your DNS provider, add a CNAME: `mailing` → `cname.vercel-dns.com`.
 5. In Resend, add the domain `primetekssc.ng` and create the SPF/DKIM DNS records it lists. A DMARC record is recommended too. Without these, mail will land in spam.
 
