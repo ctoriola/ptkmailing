@@ -77,12 +77,12 @@ export default function RecipientRow({ index, recipient: r, fields, defaults, on
   }
 
   return (
-    <div className={`card space-y-3 ${status ? (status.ok ? "border-green-400" : "border-red-400") : ""}`}>
+    <div className={`card space-y-3 ${status ? (status.ok ? "border-green-700" : "border-red-700") : ""}`}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-slate-500">#{index + 1}</span>
+        <span className="font-[family-name:var(--font-display)] text-sm font-bold text-brand-2">#{String(index + 1).padStart(2, "0")}</span>
         <div className="flex gap-2">
           <button type="button" className="btn-ghost" onClick={onPreview}>Preview</button>
-          <button type="button" className="btn-ghost text-red-700" onClick={onRemove}>Remove</button>
+          <button type="button" className="btn-ghost text-red-400" onClick={onRemove}>Remove</button>
         </div>
       </div>
 
@@ -110,17 +110,17 @@ export default function RecipientRow({ index, recipient: r, fields, defaults, on
           Attach files
           <input type="file" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
         </label>
-        {uploading > 0 && <span className="ml-3 text-sm text-slate-500">Uploading {uploading}…</span>}
-        {uploadError && <p className="mt-1 text-sm text-red-600">{uploadError}</p>}
+        {uploading > 0 && <span className="ml-3 text-sm text-muted">Uploading {uploading}…</span>}
+        {uploadError && <p className="mt-1 text-sm text-red-400">{uploadError}</p>}
         {r.attachments.length > 0 && (
           <ul className="mt-2 flex flex-wrap gap-2">
             {r.attachments.map((a) => (
-              <li key={a.url} className="flex items-center gap-2 rounded bg-slate-100 px-2 py-1 text-xs">
-                {a.filename} <span className="text-slate-500">{formatSize(a.size)}</span>
+              <li key={a.url} className="flex items-center gap-2 rounded bg-panel-2 px-2 py-1 text-xs">
+                {a.filename} <span className="text-muted">{formatSize(a.size)}</span>
                 <button
                   type="button"
                   aria-label={`Remove ${a.filename}`}
-                  className="text-slate-500 hover:text-red-600"
+                  className="text-muted hover:text-red-400"
                   onClick={() => onChange({ ...r, attachments: r.attachments.filter((x) => x.url !== a.url) })}
                 >
                   ✕
@@ -151,7 +151,7 @@ export default function RecipientRow({ index, recipient: r, fields, defaults, on
       )}
 
       {status && (
-        <p className={`text-sm ${status.ok ? "text-green-700" : "text-red-600"}`}>
+        <p className={`text-sm ${status.ok ? "text-green-400" : "text-red-400"}`}>
           {status.ok ? "Sent ✓" : `Failed: ${status.error}`}
         </p>
       )}

@@ -1,22 +1,16 @@
-import { getSession } from "@/lib/session";
 import Dashboard from "@/components/Dashboard";
+import SiteHeader from "@/components/SiteHeader";
+import { getSession } from "@/lib/session";
 
 export default async function Home() {
   const session = await getSession();
   return (
     <>
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <h1 className="font-semibold">PTK Mailing</h1>
-            {session?.role === "admin" && <a href="/admin" className="text-sm text-blue-700 hover:underline">Admin</a>}
-          </div>
-          <form action="/api/auth/logout" method="post" className="flex items-center gap-3 text-sm">
-            <span className="hidden text-slate-600 sm:inline">{session?.email}</span>
-            <button className="btn-ghost">Sign out</button>
-          </form>
-        </div>
-      </header>
+      <SiteHeader email={session?.email} links={session?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []} />
+      <section className="mx-auto max-w-6xl px-4 pt-8">
+        <p className="eyebrow">Customer mailing</p>
+        <h1 className="mt-1 text-3xl font-bold uppercase sm:text-4xl">Send emails</h1>
+      </section>
       <Dashboard />
     </>
   );

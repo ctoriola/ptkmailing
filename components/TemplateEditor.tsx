@@ -24,8 +24,8 @@ export default function TemplateEditor({ subject, body, onChange, fields, compac
         value={body}
         onChange={(e) => onChange({ subject, body: e.target.value })}
       />
-      <p className="text-xs text-slate-500">
-        Placeholders: {["email", ...fields].map((f) => <code key={f} className="mr-2 rounded bg-slate-100 px-1">{`{{${f}}}`}</code>)}
+      <p className="text-xs text-muted">
+        Placeholders: {["email", ...fields].map((f) => <code key={f} className="mr-2 rounded bg-panel-2 px-1">{`{{${f}}}`}</code>)}
       </p>
     </div>
   );

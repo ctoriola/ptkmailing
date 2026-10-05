@@ -12,7 +12,7 @@ type Tab = "history" | "settings" | "status";
 export default function AdminPanel() {
   const [tab, setTab] = useState<Tab>("history");
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4">
+    <main className="mx-auto max-w-6xl space-y-4 p-4">
       <nav className="flex gap-2">
         {(["history", "settings", "status"] as Tab[]).map((t) => (
           <button key={t} className={t === tab ? "btn-primary" : "btn-ghost"} onClick={() => setTab(t)}>
@@ -63,28 +63,28 @@ function History() {
         <button className="btn-ghost" onClick={reload} disabled={loading}>{loading ? "Loading…" : "Refresh"}</button>
       </div>
       <ErrorMessage error={error} />
-      {!loading && !error && logs.length === 0 && <p className="text-sm text-slate-600">No emails sent yet.</p>}
+      {!loading && !error && logs.length === 0 && <p className="text-sm text-muted">No emails sent yet.</p>}
       {logs.map((l) => (
         <details key={l.at} className="card">
           <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
             <span className="font-medium">{new Date(l.at).toLocaleString()}</span>
-            <span className="text-sm text-slate-600">by {l.sender}</span>
-            <span className={`text-sm font-medium ${l.sent === l.total ? "text-green-700" : "text-amber-700"}`}>
+            <span className="text-sm text-muted">by {l.sender}</span>
+            <span className={`text-sm font-medium ${l.sent === l.total ? "text-green-400" : "text-amber-300"}`}>
               {l.sent}/{l.total} sent
             </span>
           </summary>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="text-slate-500">
+              <thead className="text-muted">
                 <tr><th className="py-1 pr-3">Recipient</th><th className="pr-3">Subject</th><th className="pr-3">Files</th><th>Status</th></tr>
               </thead>
               <tbody>
                 {l.items.map((i, n) => (
-                  <tr key={n} className="border-t border-slate-100 align-top">
+                  <tr key={n} className="border-t border-line align-top">
                     <td className="py-1 pr-3">{i.email}</td>
                     <td className="pr-3">{i.subject}</td>
                     <td className="pr-3">{i.attachments.join(", ") || "—"}</td>
-                    <td className={i.ok ? "text-green-700" : "text-red-600"}>{i.ok ? "Sent" : i.error}</td>
+                    <td className={i.ok ? "text-green-400" : "text-red-400"}>{i.ok ? "Sent" : i.error}</td>
                   </tr>
                 ))}
               </tbody>
@@ -102,7 +102,7 @@ function SettingsForm() {
   const [saveError, setSaveError] = useState<ErrorBody | null>(null);
   const [saved, setSaved] = useState(false);
 
-  if (loading) return <p className="text-sm text-slate-600">Loading…</p>;
+  if (loading) return <p className="text-sm text-muted">Loading…</p>;
   if (!data) return <ErrorMessage error={error} />;
 
   const set = (k: keyof Settings) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -147,7 +147,7 @@ function SettingsForm() {
       </Field>
       <div className="flex items-center gap-3">
         <button className="btn-primary" disabled={saving}>{saving ? "Saving…" : "Save settings"}</button>
-        {saved && <span className="text-sm text-green-700">Saved ✓</span>}
+        {saved && <span className="text-sm text-green-400">Saved ✓</span>}
       </div>
       <ErrorMessage error={saveError} />
     </form>
@@ -159,7 +159,7 @@ function Field({ label, help, children }: { label: string; help?: string; childr
     <label className="block space-y-1">
       <span className="text-sm font-medium">{label}</span>
       {children}
-      {help && <span className="block text-xs text-slate-500">{help}</span>}
+      {help && <span className="block text-xs text-muted">{help}</span>}
     </label>
   );
 }
@@ -168,14 +168,14 @@ type StatusData = { env: Record<string, boolean>; domains: { name: string; statu
 
 function Status() {
   const { data, error, loading, reload } = useLoad<StatusData>("/api/admin/status");
-  if (loading) return <p className="text-sm text-slate-600">Checking…</p>;
+  if (loading) return <p className="text-sm text-muted">Checking…</p>;
   if (!data) return <ErrorMessage error={error} />;
   const fromDomain = data.domains.find((d) => d.name === data.fromDomain);
 
   return (
     <section className="space-y-4">
       <div className="card">
-        <h2 className="mb-2 font-semibold">Configuration</h2>
+        <h2 className="mb-2 text-lg font-bold uppercase tracking-wide">Configuration</h2>
         <ul className="space-y-1 text-sm">
           {Object.entries(data.env).map(([k, ok]) => (
             <li key={k}>{ok ? "✅" : "❌"} <code>{k}</code></li>
@@ -183,9 +183,9 @@ function Status() {
         </ul>
       </div>
       <div className="card">
-        <h2 className="mb-2 font-semibold">Email domain (Resend)</h2>
-        {data.resendError && <p className="text-sm text-red-600">Could not reach Resend: {data.resendError}</p>}
-        {data.domains.length === 0 && !data.resendError && <p className="text-sm text-amber-700">No domains added in Resend yet.</p>}
+        <h2 className="mb-2 text-lg font-bold uppercase tracking-wide">Email domain (Resend)</h2>
+        {data.resendError && <p className="text-sm text-red-400">Could not reach Resend: {data.resendError}</p>}
+        {data.domains.length === 0 && !data.resendError && <p className="text-sm text-amber-300">No domains added in Resend yet.</p>}
         <ul className="space-y-1 text-sm">
           {data.domains.map((d) => (
             <li key={d.name}>{d.status === "verified" ? "✅" : "⚠️"} {d.name}: {d.status}</li>
@@ -195,9 +195,9 @@ function Status() {
           <p className="mt-2 text-sm">
             MAIL_FROM domain <code>{data.fromDomain}</code>:{" "}
             {fromDomain?.status === "verified" ? (
-              <span className="text-green-700">verified</span>
+              <span className="text-green-400">verified</span>
             ) : (
-              <span className="text-red-600">not verified; emails to customers will fail until it is verified in Resend.</span>
+              <span className="text-red-400">not verified; emails to customers will fail until it is verified in Resend.</span>
             )}
           </p>
         )}

@@ -131,24 +131,24 @@ export default function Dashboard() {
   if (!loaded) return null;
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-4">
+    <main className="mx-auto max-w-6xl space-y-6 p-4">
       <section className="card space-y-3">
-        <h2 className="font-semibold">Default email</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-lg font-bold uppercase tracking-wide">Default email</h2>
+        <p className="text-sm text-muted">
           Used for every recipient unless you write a custom email for them. Placeholders are filled from each recipient&apos;s fields.
         </p>
         <TemplateEditor {...template} fields={fields} onChange={setTemplate} />
         {sendAs && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             Sent as <b>{sendAs.senderName}</b>.{sendAs.signature && " The company signature is added automatically at the end."}
           </p>
         )}
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-slate-600">Fields:</span>
+          <span className="text-muted">Fields:</span>
           {fields.map((f) => (
-            <span key={f} className="flex items-center gap-1 rounded bg-slate-100 px-2 py-1">
+            <span key={f} className="flex items-center gap-1 rounded bg-panel-2 px-2 py-1">
               {f}
-              <button aria-label={`Remove field ${f}`} className="text-slate-500 hover:text-red-600" onClick={() => setFields(fields.filter((x) => x !== f))}>✕</button>
+              <button aria-label={`Remove field ${f}`} className="text-muted hover:text-red-400" onClick={() => setFields(fields.filter((x) => x !== f))}>✕</button>
             </span>
           ))}
           <input
@@ -163,8 +163,8 @@ export default function Dashboard() {
       </section>
 
       <section className="card space-y-2">
-        <h2 className="font-semibold">Bulk add from CSV</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-lg font-bold uppercase tracking-wide">Bulk add from CSV</h2>
+        <p className="text-sm text-muted">
           Paste rows like <code>email,name,company</code>. A header row with an &quot;email&quot; column sets the field names.
         </p>
         <textarea className="input font-mono" rows={3} value={csv} onChange={(e) => setCsv(e.target.value)} placeholder={"email,name\nada@example.com,Ada"} />
@@ -173,7 +173,7 @@ export default function Dashboard() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Recipients ({recipients.length})</h2>
+          <h2 className="text-lg font-bold uppercase tracking-wide">Recipients ({recipients.length})</h2>
           <button className="btn-ghost" onClick={() => setRecipients([...recipients, newRecipient()])}>+ Add recipient</button>
         </div>
         {recipients.map((r, i) => (
@@ -192,9 +192,9 @@ export default function Dashboard() {
         ))}
       </section>
 
-      <section className="card sticky bottom-4 space-y-2">
+      <section className="card sticky bottom-4 space-y-2 border-brand/40 shadow-2xl shadow-black/60">
         {problems.length > 0 && (
-          <ul className="max-h-24 overflow-auto text-sm text-amber-800">
+          <ul className="max-h-24 overflow-auto text-sm text-amber-300">
             {problems.map((p) => <li key={p}>{p}</li>)}
           </ul>
         )}

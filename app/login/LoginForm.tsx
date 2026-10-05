@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AuthShell from "@/components/AuthShell";
 import ErrorMessage from "@/components/ErrorMessage";
 import type { ErrorBody } from "@/lib/errors";
 import { fetchJson, toErrorBody } from "@/lib/fetchJson";
@@ -28,10 +29,7 @@ export default function LoginForm({ initialError }: { initialError: ErrorBody | 
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="card w-full max-w-sm">
-        <h1 className="text-xl font-semibold">PTK Mailing</h1>
-        <p className="mb-4 text-sm text-slate-600">Sign in with your Primetek SSC email.</p>
+    <AuthShell eyebrow="Staff portal" title="Mailing dashboard" subtitle="Sign in with your PrimeTEK SSC email. We'll send you a secure sign-in link.">
         {status === "sent" ? (
           <p className="text-sm">Check <b>{email}</b> for a sign-in link. It expires in 15 minutes.</p>
         ) : (
@@ -50,7 +48,6 @@ export default function LoginForm({ initialError }: { initialError: ErrorBody | 
             <ErrorMessage error={error} />
           </form>
         )}
-      </div>
-    </main>
+    </AuthShell>
   );
 }
